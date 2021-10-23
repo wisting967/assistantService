@@ -25,7 +25,12 @@ SECRET_KEY = 'qnef@g!^v91vq9#-1+t&!y^_o9(i%yb0z6_atq7&miz!a^0&4x'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['swall.ngrok2.xiaomiqiu.cn', 'swall.free.idcfengye.com', 'nanian.eu.org', 'www.nanian.eu.org', '117.89.175.86', '240e:3a0:e08:12b1:68c:9ae2:dc71:4ec9']
+WX_GLOBAL = {
+    'wxServer': 'https://api.weixin.qq.com/sns/',
+    'appId': 'wx7a3c5eeb05769353',
+    'appSecret': 'c6b69ccb6660a764c78043d9b6766c27'
+}
 
 
 # Application definition
@@ -38,8 +43,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'api'
+    'django_filters',
+    'api',
+    'userprofile'
 ]
+
+AUTH_USER_MODEL = 'userprofile.UserProfile'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -50,6 +59,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# REST FRAMEWORK设置
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
+}
 
 ROOT_URLCONF = 'assistantService.urls'
 
@@ -78,7 +92,8 @@ WSGI_APPLICATION = 'assistantService.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, 'assistant.s3'),
     }
 }
 
@@ -120,3 +135,66 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s [%(processName)s:%(process)d] [%(threadName)s:%(thread)d] [%(filename)s:%(lineno)d] [%(module)s:%(funcName)s] [%(levelname)s] - %(message)s'
+        },
+        'verbose': {
+            'format': '%(asctime)s [%(processName)s:%(process)d] [%(threadName)s:%(thread)d] [%(filename)s:%(lineno)d] [%(module)s:%(funcName)s] [%(levelname)s] - %(message)s'
+        },
+        'simple': {
+            'format': '%(asctime)s [%(levelname)s] - %(message)s'
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'info.log'),
+            'formatter': 'verbose',
+        },
+        'djangofile': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
+            'formatter': 'verbose',
+        },
+        'alarm': {
+            'level': 'CRITICAL',  # 日志文件中不打印DEBUG、INFO、WARNING、ERROR级别的日志
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'alarm.log'),
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'swallow': {
+            'handlers': ['console', 'file', 'alarm'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django': {
+            'handlers': ['console', 'djangofile'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.db.backends': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        }
+    }
+}
